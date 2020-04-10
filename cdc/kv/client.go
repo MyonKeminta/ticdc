@@ -897,6 +897,12 @@ func (s *eventFeedSession) receiveFromStream(
 	for {
 		cevent, err := stream.Recv()
 
+		if err != nil {
+			log.Info("recv ChangeDataEvent", zap.Stringer("event", cevent))
+		} else {
+			log.Info("recv ChagneDataEvent error", zap.Error(err))
+		}
+
 		// TODO: Should we have better way to handle the errors?
 		if err == io.EOF {
 			for _, state := range regionStates {
@@ -1043,6 +1049,8 @@ func (s *eventFeedSession) singleEventFeed(
 			log.Debug("singleEventFeed closed by error")
 			return atomic.LoadUint64(&checkpointTs), errors.New("single event feed aborted")
 		}
+
+		log.Info("region received event", zap.Stringer("event", event))
 
 		metricEventSize.Observe(float64(event.Event.Size()))
 		switch x := event.Event.(type) {
